@@ -73,6 +73,7 @@
 %define with_gmond 0%{!?_without_gmond:1}
 %define with_gps 0%{!?_without_gps:1}
 %define with_hddtemp 0%{!?_without_hddtemp:1}
+%define with_hugepages 0%{!?_without_hugepages:1}
 %define with_interface 0%{!?_without_interface:1}
 %define with_ipc 0%{!?_without_ipc:1}
 %define with_ipmi 0%{!?_without_ipmi:1}
@@ -165,8 +166,12 @@
 %define with_barometer 0%{!?_without_barometer:0}
 # plugin grpc disabled, requires protobuf-compiler >= 3.0
 %define with_grpc 0%{!?_without_grpc:0}
+# plugin dpdkstat disabled, requires libdpdk
+%define with_dpdkstat 0%{!?_without_dpdkstat:0}
 # plugin lpar disabled, requires AIX
 %define with_lpar 0%{!?_without_lpar:0}
+# plugin intel_rdt disabled, requires intel-cmt-cat
+%define with_intel_rdt 0%{!?_without_intel_rdt:0}
 # plugin mic disabled, requires Mic
 %define with_mic 0%{!?_without_mic:0}
 # plugin netapp disabled, requires libnetapp
@@ -226,8 +231,8 @@
 
 Summary:	Statistics collection and monitoring daemon
 Name:		collectd
-Version:	5.6.0
-Release:	2%{?dist}
+Version:	5.7.0
+Release:	1%{?dist}
 URL:		https://collectd.org
 Source:		https://collectd.org/files/%{name}-%{version}.tar.bz2
 License:	GPLv2
@@ -449,6 +454,17 @@ Requires:	%{name}%{?_isa} = %{version}-%{release}, hddtemp
 %description hddtemp
 The HDDTemp plugin collects the temperature of hard disks. The temperatures are
 provided via SMART and queried by the external hddtemp daemon.
+%endif
+
+%if %{with_intel_rdt}
+%package intel_rdt
+Summary:	Intel RDT plugin for collectd
+Group:		System Environment/Daemons
+Requires:	%{name}%{?_isa} = %{version}-%{release}
+BuildRequires:	intel-cmt-cat
+%description intel_rdt
+The intel_rdt plugin collects information provided by monitoring features of
+Intel Resource Director Technology (Intel(R) RDT).
 %endif
 
 %if %{with_ipmi}
@@ -1068,6 +1084,12 @@ Collectd utilities
 %define _with_drbd --disable-drbd
 %endif
 
+%if %{with_dpdkstat}
+%define _with_dpdkstat --enable-dpdkstat
+%else
+%define _with_dpdkstat --disable-dpdkstat
+%endif
+
 %if %{with_email}
 %define _with_email --enable-email
 %else
@@ -1132,6 +1154,18 @@ Collectd utilities
 %define _with_hddtemp --enable-hddtemp
 %else
 %define _with_hddtemp --disable-hddtemp
+%endif
+
+%if %{with_hugepages}
+%define _with_hugepages --enable-hugepages
+%else
+%define _with_hugepages --disable-hugepages
+%endif
+
+%if %{with_intel_rdt}
+%define _with_intel_rdt --enable-intel_rdt
+%else
+%define _with_intel_rdt --disable-intel_rdt
 %endif
 
 %if %{with_interface}
@@ -1751,6 +1785,7 @@ Collectd utilities
 	%{?_with_disk} \
 	%{?_with_dns} \
 	%{?_with_drbd} \
+	%{?_with_dpdkstat} \
 	%{?_with_email} \
 	%{?_with_entropy} \
 	%{?_with_ethstat} \
@@ -1762,6 +1797,8 @@ Collectd utilities
 	%{?_with_gps} \
 	%{?_with_grpc} \
 	%{?_with_hddtemp} \
+	%{?_with_hugepages} \
+	%{?_with_intel_rdt} \
 	%{?_with_interface} \
 	%{?_with_ipc} \
 	%{?_with_ipmi} \
@@ -2027,6 +2064,9 @@ fi
 %if %{with_drbd}
 %{_libdir}/%{name}/drbd.so
 %endif
+%if %{with_dpdkstat}
+%{_libdir}/%{name}/dpdkstat.so
+%endif
 %if %{with_ethstat}
 %{_libdir}/%{name}/ethstat.so
 %endif
@@ -2044,6 +2084,9 @@ fi
 %endif
 %if %{with_fscache}
 %{_libdir}/%{name}/fscache.so
+%endif
+%if %{with_hugepages}
+%{_libdir}/%{name}/hugepages.so
 %endif
 %if %{with_interface}
 %{_libdir}/%{name}/interface.so
@@ -2304,6 +2347,11 @@ fi
 %{_libdir}/%{name}/hddtemp.so
 %endif
 
+%if %{with_intel_rdt}
+%files intel_rdt
+%{_libdir}/%{name}/intel_rdt.so
+%endif
+
 %if %{with_ipmi}
 %files ipmi
 %{_libdir}/%{name}/ipmi.so
@@ -2512,8 +2560,16 @@ fi
 %doc contrib/
 
 %changelog
-* Sun Aug 14 2016 Ruben Kerkhof <ruben@rubenkerkhof.com> - 5.6.0-1
+* Mon Oct 10 2016 Marc Fournier <marc.fournier@camptocamp.com> - 5.7.0-1
 - New PRE-RELEASE version
+- New plugins enabled by default: hugepages
+- New plugins disabled by default: dpdkstat, intel_rdt
+
+* Mon Oct 10 2016 Victor Demonchy <v.demonchy@criteo.com> - 5.6.1-1
+- New upstream version
+
+* Sun Aug 14 2016 Ruben Kerkhof <ruben@rubenkerkhof.com> - 5.6.0-1
+- New upstream version
 - New plugins enabled by default: chrony, cpusleep, gps, lua, mqtt, notify_nagios
 - New plugins disabled by default: grpc, xencpu, zone
 

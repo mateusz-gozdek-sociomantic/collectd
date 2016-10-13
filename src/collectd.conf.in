@@ -114,6 +114,7 @@
 #@BUILD_PLUGIN_DF_TRUE@LoadPlugin df
 #@BUILD_PLUGIN_DISK_TRUE@LoadPlugin disk
 #@BUILD_PLUGIN_DNS_TRUE@LoadPlugin dns
+#@BUILD_PLUGIN_DPDKSTAT_TRUE@LoadPlugin dpdkstat
 #@BUILD_PLUGIN_DRBD_TRUE@LoadPlugin drbd
 #@BUILD_PLUGIN_EMAIL_TRUE@LoadPlugin email
 #@BUILD_PLUGIN_ENTROPY_TRUE@LoadPlugin entropy
@@ -126,6 +127,8 @@
 #@BUILD_PLUGIN_GPS_TRUE@LoadPlugin gps
 #@BUILD_PLUGIN_GRPC_TRUE@LoadPlugin grpc
 #@BUILD_PLUGIN_HDDTEMP_TRUE@LoadPlugin hddtemp
+#@BUILD_PLUGIN_HUGEPAGES_TRUE@LoadPlugin hugepages
+#@BUILD_PLUGIN_INTEL_RDT_TRUE@LoadPlugin intel_rdt
 @BUILD_PLUGIN_INTERFACE_TRUE@@BUILD_PLUGIN_INTERFACE_TRUE@LoadPlugin interface
 #@BUILD_PLUGIN_IPC_TRUE@LoadPlugin ipc
 #@BUILD_PLUGIN_IPMI_TRUE@LoadPlugin ipmi
@@ -299,6 +302,7 @@
 #<Plugin "battery">
 #  ValuesPercentage false
 #  ReportDegraded false
+#  QueryStateFS false
 #</Plugin>
 
 #<Plugin "bind">
@@ -518,6 +522,16 @@
 #	SelectNumericQueryTypes true
 #</Plugin>
 
+#<Plugin dpdkstat>
+#       Interval 1
+#       Coremask "0xf"
+#       ProcessType "secondary"
+#       FilePrefix "rte"
+#       EnabledPortMask 0xffff
+#       PortName "interface1"
+#       PortName "interface2"
+#</Plugin>
+
 #<Plugin email>
 #	SocketFile "@localstatedir@/run/@PACKAGE_NAME@-email"
 #	SocketGroup "collectd"
@@ -592,6 +606,18 @@
 #<Plugin hddtemp>
 #  Host "127.0.0.1"
 #  Port "7634"
+#</Plugin>
+
+#<Plugin hugepages>
+#    ReportPerNodeHP  true
+#    ReportRootHP     true
+#    ValuesPages      true
+#    ValuesBytes      false
+#    ValuesPercentage false
+#</Plugin>
+
+#<Plugin "intel_rdt">
+#  Cores "0-2"
 #</Plugin>
 
 #<Plugin interface>
@@ -684,7 +710,8 @@
 
 #<Plugin memcached>
 #	<Instance "local">
-#		Host "127.0.0.1"
+#		#Host "memcache.example.com"
+#		Address "127.0.0.1"
 #		Port "11211"
 #	</Instance>
 #</Plugin>
@@ -856,6 +883,11 @@
 #		Interface "eth0"
 #	</Listen>
 #	MaxPacketSize 1452
+#
+# # node setup:
+# <Node "alerts">
+#   Server "ff18::efc0:4a42" "25826"
+# </Node>
 #
 #	# proxy setup (client and server as above):
 #	Forward true
@@ -1409,6 +1441,7 @@
 #    AlwaysAppendDS false
 #    EscapeCharacter "_"
 #    SeparateInstances false
+#    DropDuplicateFields false
 #  </Node>
 #</Plugin>
 

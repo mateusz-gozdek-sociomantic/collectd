@@ -91,7 +91,7 @@ static int wr_write (const data_set_t *ds, /* {{{ */
     node->conn = redisConnectWithTimeout ((char *)node->host, node->port, node->timeout);
     if (node->conn == NULL)
     {
-      ERROR ("write_redis plugin: Connecting to host \"%s\" (port %i) failed: Unkown reason",
+      ERROR ("write_redis plugin: Connecting to host \"%s\" (port %i) failed: Unknown reason",
           (node->host != NULL) ? node->host : "localhost",
           (node->port != 0) ? node->port : 6379);
       pthread_mutex_unlock (&node->lock);
@@ -234,12 +234,11 @@ static int wr_config_node (oconfig_item_t *ci) /* {{{ */
 
     ssnprintf (cb_name, sizeof (cb_name), "write_redis/%s", node->name);
 
-    user_data_t ud = {
-      .data = node,
-      .free_func = wr_config_free
-    };
-
-    status = plugin_register_write (cb_name, wr_write, &ud);
+    status = plugin_register_write (cb_name, wr_write,
+        &(user_data_t) {
+          .data = node,
+          .free_func = wr_config_free,
+        });
   }
 
   if (status != 0)
